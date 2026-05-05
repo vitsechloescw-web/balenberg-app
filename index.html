@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Les Écuries du Balenberg</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* =============================================
+   VARIABLES — modifiez ici pour tout changer
+   ============================================= */
+:root {
+  --bg:         #f7f3ee;
+  --surface:    #faf7f2;
+  --surface2:   #f0ebe2;
+  --surface3:   #e8ddd0;
+  --border:     #e0d4c4;
+  --border2:    #d0c4b0;
+  --text:       #2a2018;
+  --text2:      #5a4a32;
+  --text3:      #9a8a72;
+  --muted:      #c8b89a;
+  --green:      #5a8a3a;
+  --green-bg:   #eaf3e4;
+  --green-bd:   #c0d8a8;
+  --red:        #b85a5a;
+  --red-bg:     #faeaea;
+  --red-bd:     #e0b8b8;
+  --orange:     #9a6820;
+  --orange-bg:  #fdf3e8;
+  --orange-bd:  #e8d0a0;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans:  'Jost', sans-serif;
+  --radius:     8px;
+  --radius-lg:  12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* =============================================
+   LOGIN PAGE
+   ============================================= */
+#login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 48px 44px;
+  width: 420px;
+  text-align: center;
+  box-shadow: 0 4px 40px rgba(42,32,24,0.06);
+}
+.login-logo { width: 90px; height: 90px; object-fit: contain; margin-bottom: 20px; }
+.login-name {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.login-sub {
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+.login-rule { width: 40px; height: 1px; background: var(--border2); margin: 16px auto 28px; }
+.login-label {
+  display: block;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 6px;
+}
+.login-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 11px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 16px;
+}
+.login-input:focus { border-color: var(--text2); }
+.login-btn {
+  width: 100%;
+  background: var(--text);
+  color: var(--surface);
+  border: none;
+  border-radius: 4px;
+  padding: 13px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+.login-btn:hover { background: var(--text2); }
+.login-error {
+  background: var(--red-bg);
+  border: 1px solid var(--red-bd);
+  color: var(--red);
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  display: none;
+}
+
+/* =============================================
+   APP LAYOUT
+   ============================================= */
+#app { display: none; height: 100vh; display: none; flex-direction: row; }
+#app.visible { display: flex; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+}
+.sidebar-top {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-logo { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; }
+.sidebar-brand { }
+.sidebar-name {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.1;
+}
+.sidebar-sub {
+  font-size: 8px;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.nav-section {
+  padding: 14px 14px 4px;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.03em;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+.nav-item:hover { color: var(--text); background: var(--surface2); }
+.nav-item.active { color: var(--text); background: var(--surface2); border-left-color: var(--text); font-weight: 400; }
+.nav-item .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.35; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: white;
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 400;
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logout-btn {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+.logout-btn:hover { color: var(--red); border-color: var(--red-bd); }
+
+/* MAIN */
+.main {
+  margin-left: 220px;
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text);
+}
+.topbar-right { display: flex; gap: 10px; align-items: center; }
+.topbar-date { font-size: 11px; font-weight: 300; color: var(--text3); letter-spacing: 0.08em; }
+
+.content { padding: 28px 32px; flex: 1; }
+
+/* =============================================
+   PAGES
+   ============================================= */
+.page { display: none; animation: fadeIn 0.2s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* =============================================
+   BUTTONS
+   ============================================= */
+.btn {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  padding: 9px 20px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-dark { background: var(--text); color: var(--surface); }
+.btn-dark:hover { background: var(--text2); }
+.btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+.btn-outline:hover { border-color: var(--text); }
+.btn-ghost { background: transparent; color: var(--text3); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--text); }
+.btn-sm { padding: 6px 14px; font-size: 9px; }
+.btn-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+
+/* =============================================
+   STATS CARDS
+   ============================================= */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--text);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.stat-card.green { border-top-color: var(--green); }
+.stat-card.red { border-top-color: var(--red); }
+.stat-card.muted { border-top-color: var(--muted); }
+.stat-val {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-lbl { font-size: 9px; font-weight: 400; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text3); }
+.stat-sub { font-size: 11px; font-weight: 300; color: var(--green); margin-top: 6px; }
+
+/* =============================================
+   CARDS
+   ============================================= */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text);
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+/* =============================================
+   TABLE
+   ============================================= */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 9px 14px;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--surface3);
+  color: var(--text);
+  font-weight: 300;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+
+/* =============================================
+   BADGES
+   ============================================= */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-bd); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-bd); }
+.badge-muted { background: var(--surface2); color: var(--text3); border: 1px solid var(--border); }
+
+/* =============================================
+   ALERTS
+   ============================================= */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 300;
+  margin-bottom: 7px;
+  line-height: 1.5;
+}
+.alert-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.alert.urgent { background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red); }
+.alert.warning { background: var(--orange-bg); border: 1px solid var(--orange-bd); color: var(--orange); }
+.alert.info { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); }
+.alert.urgent .alert-dot { background: var(--red); }
+.alert.warning .alert-dot { background: var(--orange); }
+.alert.info .alert-dot { background: var(--muted); }
+
+/* =============================================
+   PROGRESS BARS
+   ============================================= */
+.progress {
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+.pf-dark { background: var(--text); }
+.pf-green { background: var(--green); }
+.pf-red { background: var(--red); }
+.pf-orange { background: var(--orange); }
+
+/* =============================================
+   MODAL
+   ============================================= */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(42,32,24,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(42,32,24,0.15);
+}
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 24px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text3);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--red-bg); color: var(--red); border-color: var(--red-bd); }
+
+/* =============================================
+   FORMS
+   ============================================= */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-label {
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.form-input, .form-select, .form-textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--text2); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* =============================================
+   STOCK GAUGES
+   ============================================= */
+.stock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.stock-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.stock-name { font-size: 8px; font-weight: 400; letter-spacing: 0.28em; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+.stock-val { font-family: var(--font-serif); font-size: 24px; font-weight: 300; color: var(--text); }
+.stock-unit { font-size: 11px; color: var(--text3); }
+.stock-status { font-size: 10px; font-weight: 300; margin-top: 4px; }
+
+/* =============================================
+   TABS
+   ============================================= */
+.tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tab {
+  padding: 8px 18px;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  margin-bottom: -1px;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--text); border-bottom-color: var(--text); font-weight: 400; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* =============================================
+   PLANNING
+   ============================================= */
+.week-grid {
+  display: grid;
+  grid-template-columns: 60px repeat(7, 1fr);
+  gap: 2px;
+  font-size: 11px;
+}
+.wg-header {
+  background: var(--surface2);
+  padding: 8px 6px;
+  text-align: center;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.wg-header.today { background: var(--text); color: var(--surface); }
+.wg-time {
+  padding: 8px 6px;
+  text-align: right;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 300;
+}
+.wg-slot {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  min-height: 44px;
+  padding: 4px;
+}
+.wg-event {
+  border-left: 2px solid;
+  padding: 3px 6px;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 300;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+.ev-soin { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+.ev-alim { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.ev-cours { border-color: var(--text2); background: var(--surface2); color: var(--text2); }
+.ev-autre { border-color: var(--muted); background: var(--surface3); color: var(--text3); }
+
+/* =============================================
+   HORSE CARDS
+   ============================================= */
+.horse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.horse-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.horse-card:hover { border-color: var(--text2); box-shadow: 0 4px 20px rgba(42,32,24,0.08); transform: translateY(-2px); }
+.horse-card-top {
+  height: 64px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.horse-card-body { padding: 14px 16px; }
+.horse-card-name {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.horse-card-meta { font-size: 10px; font-weight: 300; color: var(--text3); letter-spacing: 0.05em; margin-bottom: 10px; }
+.horse-card-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+
+/* =============================================
+   TIMELINE
+   ============================================= */
+.timeline { padding-left: 20px; position: relative; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.tl-item { position: relative; padding-bottom: 16px; }
+.tl-dot { position: absolute; left: -18px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); border: 2px solid var(--surface); }
+.tl-dot.active { background: var(--text); }
+.tl-date { font-size: 10px; font-weight: 300; color: var(--text3); letter-spacing: 0.08em; }
+.tl-text { font-size: 13px; font-weight: 300; color: var(--text); margin-top: 2px; }
+.tl-sub { font-size: 11px; font-weight: 300; color: var(--text3); margin-top: 1px; }
+
+/* =============================================
+   LOADING & EMPTY
+   ============================================= */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  color: var(--text3);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 300;
+}
+.loading::before {
+  content: '';
+  width: 16px; height: 16px;
+  border: 1px solid var(--border2);
+  border-top-color: var(--text2);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-right: 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 48px; color: var(--text3); font-size: 12px; font-weight: 300; letter-spacing: 0.1em; }
+.empty-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.4; }
+
+/* =============================================
+   CONTRACT CARD
+   ============================================= */
+.contract-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.contract-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-style: italic;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+.contract-info { flex: 1; }
+.contract-name { font-weight: 400; font-size: 14px; color: var(--text); margin-bottom: 2px; }
+.contract-detail { font-size: 11px; font-weight: 300; color: var(--text3); }
+.contract-amount {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--text);
+  text-align: right;
+}
+.contract-period { font-size: 10px; font-weight: 300; color: var(--text3); text-align: right; }
+
+/* =============================================
+   SCROLLBAR
+   ============================================= */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-100%); }
+  .main { margin-left: 0; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .grid-2 { grid-template-columns: 1fr; }
+  .stock-grid { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-page">
+  <div class="login-card">
+    <img class="login-logo" src="https://vuzxyrbybrrussktkgdc.supabase.co/storage/v1/object/public/assets/logo.png" alt="Balenberg" onerror="this.style.fontSize='3rem';this.style.width='auto';this.textContent='🐴'">
+    <div class="login-name">Les écuries du Balenberg</div>
+    <div class="login-sub">Pension chevaux retraités</div>
+    <div class="login-rule"></div>
+    <div id="login-error" class="login-error"></div>
+    <label class="login-label">Adresse email</label>
+    <input class="login-input" type="email" id="login-email" placeholder="votre@email.fr">
+    <label class="login-label">Mot de passe</label>
+    <input class="login-input" type="password" id="login-password" placeholder="••••••••">
+    <button class="login-btn" onclick="handleLogin()">Accéder à mon espace</button>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-top">
+      <img class="sidebar-logo" src="https://vuzxyrbybrrussktkgdc.supabase.co/storage/v1/object/public/assets/logo.png" alt="" onerror="this.style.display='none'">
+      <div class="sidebar-brand">
+        <div class="sidebar-name">Balenberg</div>
+        <div class="sidebar-sub">Gestion écurie</div>
+      </div>
+    </div>
+
+    <div class="nav-section">Tableau de bord</div>
+    <div class="nav-item active" onclick="navigate('dashboard',this)"><span class="dot"></span>Vue d'ensemble</div>
+
+    <div class="nav-section">Chevaux</div>
+    <div class="nav-item" onclick="navigate('horses',this)"><span class="dot"></span>Mes chevaux</div>
+    <div class="nav-item" onclick="navigate('health',this)"><span class="dot"></span>Santé & soins <span class="nav-badge" id="badge-health">0</span></div>
+    <div class="nav-item" onclick="navigate('reproduction',this)"><span class="dot"></span>Reproduction</div>
+    <div class="nav-item" onclick="navigate('nutrition',this)"><span class="dot"></span>Nutrition</div>
+
+    <div class="nav-section">Exploitation</div>
+    <div class="nav-item" onclick="navigate('stocks',this)"><span class="dot"></span>Stocks & récoltes</div>
+    <div class="nav-item" onclick="navigate('patures',this)"><span class="dot"></span>Pâtures</div>
+    <div class="nav-item" onclick="navigate('planning',this)"><span class="dot"></span>Planning</div>
+
+    <div class="nav-section">Administration</div>
+    <div class="nav-item" onclick="navigate('contracts',this)"><span class="dot"></span>Contrats <span class="nav-badge" id="badge-contracts" style="display:none">!</span></div>
+    <div class="nav-item" onclick="navigate('finance',this)"><span class="dot"></span>Finances</div>
+
+    <div class="sidebar-footer">
+      <span id="user-role-label" style="font-size:9px;letter-spacing:0.15em;text-transform:uppercase">Gérant</span>
+      <button class="logout-btn" onclick="handleLogout()">Déconnexion</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Vue d'ensemble</div>
+      <div class="topbar-right">
+        <span class="topbar-date" id="today-date"></span>
+        <button class="btn btn-dark btn-sm" onclick="openModal('quick-add')">+ Ajouter</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-chevaux">—</div>
+            <div class="stat-lbl">Chevaux</div>
+            <div class="stat-sub" id="stat-chevaux-sub"></div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-val" id="stat-foin">—</div>
+            <div class="stat-lbl">Foin restant</div>
+            <div class="stat-sub" id="stat-foin-sub"></div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-val" id="stat-alertes">—</div>
+            <div class="stat-lbl">Alertes santé</div>
+          </div>
+          <div class="stat-card muted">
+            <div class="stat-val" id="stat-contrats">—</div>
+            <div class="stat-lbl">Contrats actifs</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Alertes & rappels</span>
+            </div>
+            <div id="dashboard-alertes">
+              <div class="loading"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Stocks critiques</span>
+              <button class="btn btn-ghost btn-sm" onclick="navigate('stocks', document.querySelector('[onclick*=stocks]'))">Voir tout</button>
+            </div>
+            <div id="dashboard-stocks">
+              <div class="loading"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <span class="card-title">Derniers mouvements de stock</span>
+          </div>
+          <div id="dashboard-mouvements"><div class="loading"></div></div>
+        </div>
+      </div>
+
+      <!-- CHEVAUX -->
+      <div class="page" id="page-horses">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Mes chevaux</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-horse')">+ Nouveau cheval</button>
+        </div>
+        <div id="horses-list"><div class="loading"></div></div>
+      </div>
+
+      <!-- SANTE -->
+      <div class="page" id="page-health">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Santé & soins</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-soin')">+ Ajouter soin</button>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'health-rappels')">Rappels vaccins</div>
+          <div class="tab" onclick="switchTab(this,'health-historique')">Historique</div>
+        </div>
+        <div class="tab-content active" id="tab-health-rappels">
+          <div id="health-rappels-list"><div class="loading"></div></div>
+        </div>
+        <div class="tab-content" id="tab-health-historique">
+          <div id="health-historique-list"><div class="loading"></div></div>
+        </div>
+      </div>
+
+      <!-- REPRODUCTION -->
+      <div class="page" id="page-reproduction">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Reproduction</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-cycle')">+ Enregistrer cycle</button>
+        </div>
+        <div id="reproduction-list"><div class="loading"></div></div>
+      </div>
+
+      <!-- NUTRITION -->
+      <div class="page" id="page-nutrition">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Nutrition & compléments</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-ration')">+ Ration</button>
+        </div>
+        <div id="nutrition-list"><div class="loading"></div></div>
+      </div>
+
+      <!-- STOCKS -->
+      <div class="page" id="page-stocks">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Stocks & récoltes</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="openModal('add-recolte')">+ Récolte</button>
+            <button class="btn btn-dark btn-sm" onclick="openModal('add-stock')">+ Entrée stock</button>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab(this,'stocks-produits')">Produits</div>
+          <div class="tab" onclick="switchTab(this,'stocks-mouvements')">Mouvements</div>
+          <div class="tab" onclick="switchTab(this,'stocks-recoltes')">Récoltes</div>
+          <div class="tab" onclick="switchTab(this,'stocks-prix')">Historique prix</div>
+        </div>
+        <div class="tab-content active" id="tab-stocks-produits">
+          <div id="stocks-produits-list"><div class="loading"></div></div>
+        </div>
+        <div class="tab-content" id="tab-stocks-mouvements">
+          <div id="stocks-mouvements-list"><div class="loading"></div></div>
+        </div>
+        <div class="tab-content" id="tab-stocks-recoltes">
+          <div id="stocks-recoltes-list"><div class="loading"></div></div>
+        </div>
+        <div class="tab-content" id="tab-stocks-prix">
+          <div id="stocks-prix-list"><div class="loading"></div></div>
+        </div>
+      </div>
+
+      <!-- PÂTURES -->
+      <div class="page" id="page-patures">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Gestion des pâtures</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-rotation')">+ Rotation</button>
+        </div>
+        <div id="patures-list"><div class="loading"></div></div>
+      </div>
+
+      <!-- PLANNING -->
+      <div class="page" id="page-planning">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Planning de la semaine</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-event')">+ Événement</button>
+        </div>
+        <div id="planning-view"><div class="loading"></div></div>
+      </div>
+
+      <!-- CONTRATS -->
+      <div class="page" id="page-contracts">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Contrats & propriétaires</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-contract')">+ Nouveau contrat</button>
+        </div>
+        <div id="contracts-list"><div class="loading"></div></div>
+      </div>
+
+      <!-- FINANCES -->
+      <div class="page" id="page-finance">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <span style="font-family:var(--font-serif);font-size:18px;font-style:italic;font-weight:300">Finances</span>
+          <button class="btn btn-dark btn-sm" onclick="openModal('add-transaction')">+ Transaction</button>
+        </div>
+        <div id="finance-view"><div class="loading"></div></div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ===================== MODAL ===================== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// SUPABASE CONFIG
+// =============================================
+const SUPABASE_URL = 'https://vuzxyrbybrrussktkgdc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1enh5cmJ5YnJydXNza3RrZ2RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1NDk3MTIsImV4cCI6MjA5MzEyNTcxMn0.IaVjvJqfZaJ7b3WCb_jjHZiuaP22RoDOzuV_nLgDmr8';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// =============================================
+// AUTH
+// =============================================
+let currentUser = null;
+let currentProfile = null;
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  if (!email || !pass) { errEl.textContent = 'Veuillez remplir tous les champs.'; errEl.style.display = 'block'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = 'Email ou mot de passe incorrect.'; errEl.style.display = 'block'; return; }
+  await initApp(data.user);
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+async function initApp(user) {
+  currentUser = user;
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  // Charger profil
+  const { data: prof } = await sb.from('profils').select('*').eq('id', user.id).single();
+  if (prof) {
+    currentProfile = prof;
+    document.getElementById('user-role-label').textContent = prof.role === 'gerant' ? 'Gérant' : 'Propriétaire';
+    if (prof.role !== 'gerant') restrictToOwner();
+  }
+  loadDashboard();
+}
+
+function restrictToOwner() {
+  // Cacher les sections admin pour les propriétaires
+  document.querySelectorAll('[onclick*="finance"],[onclick*="stocks"],[onclick*="patures"]').forEach(el => el.style.display = 'none');
+}
+
+// Check session au chargement
+sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) initApp(session.user);
+});
+
+// =============================================
+// NAVIGATION
+// =============================================
+const pageTitles = {
+  dashboard:'Vue d\'ensemble', horses:'Mes chevaux', health:'Santé & soins',
+  reproduction:'Reproduction', nutrition:'Nutrition', stocks:'Stocks & récoltes',
+  patures:'Pâtures', planning:'Planning', contracts:'Contrats', finance:'Finances'
+};
+
+function navigate(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[page] || page;
+  if (el) el.classList.add('active');
+  // Charger les données de la page
+  const loaders = { horses: loadHorses, health: loadHealth, stocks: loadStocks,
+    patures: loadPatures, planning: loadPlanning, contracts: loadContracts,
+    finance: loadFinance, reproduction: loadReproduction, nutrition: loadNutrition };
+  if (loaders[page]) loaders[page]();
+}
+
+// =============================================
+// TABS
+// =============================================
+function switchTab(el, tabId) {
+  const group = el.parentElement;
+  group.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const container = group.parentElement;
+  container.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+  const target = document.getElementById('tab-' + tabId);
+  if (target) { target.classList.add('active'); }
+  // Lazy load
+  if (tabId === 'stocks-mouvements' && !document.getElementById('stocks-mouvements-list').dataset.loaded) loadMouvements();
+  if (tabId === 'stocks-recoltes' && !document.getElementById('stocks-recoltes-list').dataset.loaded) loadRecoltes();
+  if (tabId === 'stocks-prix' && !document.getElementById('stocks-prix-list').dataset.loaded) loadPrix();
+  if (tabId === 'health-historique' && !document.getElementById('health-historique-list').dataset.loaded) loadHealthHistory();
+}
+
+// =============================================
+// DASHBOARD
+// =============================================
+async function loadDashboard() {
+  await Promise.all([loadDashStats(), loadDashAlertes(), loadDashStocks(), loadDashMouvements()]);
+}
+
+async function loadDashStats() {
+  const [{ count: nbChevaux }, { data: foin }, { data: alertes }, { count: nbContrats }] = await Promise.all([
+    sb.from('chevaux').select('*', {count:'exact',head:true}).eq('actif', true),
+    sb.from('stock_actuel').select('*').eq('nom', 'Foin de prairie').single(),
+    sb.from('rappels_soins').select('*').in('statut_rappel', ['en_retard','bientot']),
+    sb.from('contrats').select('*', {count:'exact',head:true}).eq('statut','actif')
+  ]);
+  document.getElementById('stat-chevaux').textContent = nbChevaux ?? 0;
+  document.getElementById('stat-chevaux-sub').textContent = 'en pension';
+  if (foin) {
+    document.getElementById('stat-foin').textContent = foin.stock_total + ' bottes';
+    document.getElementById('stat-foin-sub').textContent = '≈ ' + Math.round(foin.stock_total / 2.2) + ' jours';
+  }
+  const nbAlertes = alertes?.length ?? 0;
+  document.getElementById('stat-alertes').textContent = nbAlertes;
+  document.getElementById('badge-health').textContent = nbAlertes;
+  document.getElementById('stat-contrats').textContent = nbContrats ?? 0;
+}
+
+async function loadDashAlertes() {
+  const el = document.getElementById('dashboard-alertes');
+  const { data: rappels } = await sb.from('rappels_soins').select('*').order('prochain_rappel');
+  const { data: contrats } = await sb.from('contrats_alertes').select('*');
+  if (!rappels?.length && !contrats?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">✓</div>Aucune alerte en cours</div>'; return; }
+  let html = '';
+  rappels?.slice(0,4).forEach(r => {
+    const cls = r.statut_rappel === 'en_retard' ? 'urgent' : 'warning';
+    const txt = r.statut_rappel === 'en_retard' ? `En retard de ${Math.abs(r.jours_retard)} jour(s)` : 'Bientôt';
+    html += `<div class="alert ${cls}"><div class="alert-dot"></div><div><strong>${r.titre}</strong> · ${r.cheval_nom}<br><span style="font-size:10px">${txt}</span></div></div>`;
+  });
+  contrats?.forEach(c => {
+    html += `<div class="alert warning"><div class="alert-dot"></div><div><strong>Contrat</strong> · ${c.cheval_nom} (${c.proprietaire_nom})<br><span style="font-size:10px">Expire dans ${c.jours_avant_expiration} jour(s)</span></div></div>`;
+  });
+  el.innerHTML = html || '<div class="empty">Aucune alerte</div>';
+}
+
+async function loadDashStocks() {
+  const el = document.getElementById('dashboard-stocks');
+  const { data } = await sb.from('stock_actuel').select('*').order('nom');
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucun produit</div>'; return; }
+  let html = '';
+  data.forEach(p => {
+    const pct = p.seuil_alerte > 0 ? Math.min(100, Math.round((p.stock_total / (p.seuil_alerte * 4)) * 100)) : 50;
+    const cls = pct < 25 ? 'pf-red' : pct < 50 ? 'pf-orange' : 'pf-green';
+    html += `<div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <span>${p.nom}</span>
+        <span style="font-weight:400">${p.stock_total} ${p.unite}</span>
+      </div>
+      <div class="progress"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+      ${p.stock_total <= p.seuil_alerte ? `<div style="font-size:10px;color:var(--red);margin-top:2px">⚠ Stock critique — commander</div>` : ''}
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+async function loadDashMouvements() {
+  const el = document.getElementById('dashboard-mouvements');
+  const { data } = await sb.from('mouvements_stock').select('*, produits(nom,unite)').order('cree_le', {ascending:false}).limit(6);
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucun mouvement enregistré</div>'; return; }
+  let html = '<div class="table-wrap"><table><thead><tr><th>Date</th><th>Produit</th><th>Type</th><th>Quantité</th><th>Notes</th></tr></thead><tbody>';
+  data.forEach(m => {
+    const cls = m.type_mouvement === 'entree' ? 'badge-green' : 'badge-red';
+    const lbl = m.type_mouvement === 'entree' ? 'Entrée' : m.type_mouvement === 'sortie' ? 'Sortie' : 'Inventaire';
+    html += `<tr><td>${fmt(m.date_mouvement)}</td><td>${m.produits?.nom||'—'}</td><td><span class="badge ${cls}">${lbl}</span></td><td>${m.quantite} ${m.produits?.unite||''}</td><td style="color:var(--text3)">${m.notes||'—'}</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// CHEVAUX
+// =============================================
+async function loadHorses() {
+  const el = document.getElementById('horses-list');
+  const { data } = await sb.from('chevaux').select('*, profils(nom,prenom)').eq('actif', true).order('nom');
+  if (!data?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🐴</div>Aucun cheval enregistré<br><button class="btn btn-dark btn-sm" style="margin-top:12px" onclick="openModal(\'add-horse\')">+ Ajouter un cheval</button></div>'; return; }
+  let html = '<div class="horse-grid">';
+  data.forEach(h => {
+    const proprio = h.profils ? `${h.profils.prenom||''} ${h.profils.nom}`.trim() : 'Balenberg';
+    const sex = h.sexe === 'jument' ? '🐎' : h.sexe === 'etalon' ? '🦄' : '🐴';
+    html += `<div class="horse-card" onclick="openModal('horse-detail-${h.id}')">
+      <div class="horse-card-top">${sex}</div>
+      <div class="horse-card-body">
+        <div class="horse-card-name">${h.nom}</div>
+        <div class="horse-card-meta">${[h.sexe, h.race, h.box_numero ? 'Box '+h.box_numero : ''].filter(Boolean).join(' · ')}</div>
+        <div class="horse-card-meta" style="margin-bottom:0;margin-top:2px">Proprio : ${proprio}</div>
+        <div class="horse-card-tags" style="margin-top:8px">
+          <span class="badge badge-muted">${h.type_pension||'—'}</span>
+        </div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// SANTÉ
+// =============================================
+async function loadHealth() {
+  const el = document.getElementById('health-rappels-list');
+  const { data } = await sb.from('rappels_soins').select('*').order('prochain_rappel');
+  if (!data?.length) { el.innerHTML = '<div class="empty">✓ Tous les soins sont à jour</div>'; return; }
+  let html = '<div class="card"><div class="table-wrap"><table><thead><tr><th>Cheval</th><th>Soin</th><th>Prochain rappel</th><th>Statut</th><th></th></tr></thead><tbody>';
+  data.forEach(r => {
+    const cls = r.statut_rappel === 'en_retard' ? 'badge-red' : 'badge-orange';
+    const lbl = r.statut_rappel === 'en_retard' ? `En retard ${Math.abs(r.jours_retard)}j` : 'Bientôt';
+    html += `<tr><td><strong>${r.cheval_nom}</strong></td><td>${r.titre}</td><td>${fmt(r.prochain_rappel)}</td><td><span class="badge ${cls}">${lbl}</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal('add-soin')">Planifier</button></td></tr>`;
+  });
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+async function loadHealthHistory() {
+  const el = document.getElementById('health-historique-list');
+  el.dataset.loaded = '1';
+  const { data } = await sb.from('soins').select('*, chevaux(nom)').order('date_soin', {ascending:false}).limit(30);
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucun soin enregistré</div>'; return; }
+  let html = '<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Cheval</th><th>Type</th><th>Acte</th><th>Coût</th></tr></thead><tbody>';
+  data.forEach(s => {
+    html += `<tr><td>${fmt(s.date_soin)}</td><td>${s.chevaux?.nom||'—'}</td><td><span class="badge badge-muted">${s.type_soin}</span></td><td>${s.titre}</td><td>${s.cout ? s.cout+'€' : '—'}</td></tr>`;
+  });
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// STOCKS
+// =============================================
+async function loadStocks() {
+  const el = document.getElementById('stocks-produits-list');
+  const { data } = await sb.from('stock_actuel').select('*').order('categorie');
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucun produit</div>'; return; }
+  let html = '<div class="stock-grid">';
+  data.forEach(p => {
+    const pct = p.seuil_alerte > 0 ? Math.min(100, Math.round((p.stock_total / (p.seuil_alerte * 4)) * 100)) : 60;
+    const cls = pct < 25 ? 'pf-red' : pct < 50 ? 'pf-orange' : 'pf-green';
+    const statusColor = pct < 25 ? 'var(--red)' : pct < 50 ? 'var(--orange)' : 'var(--green)';
+    const statusTxt = pct < 25 ? '⚠ Stock critique' : pct < 50 ? '◆ Bientôt' : '✓ OK';
+    const jourDepuisAchat = p.dernier_achat ? Math.round((Date.now() - new Date(p.dernier_achat)) / 86400000) : null;
+    const rappelDu = jourDepuisAchat && p.delai_rappel_jours && jourDepuisAchat >= p.delai_rappel_jours;
+    html += `<div class="stock-item">
+      <div class="stock-name">${p.categorie} · ${p.nom}</div>
+      <div><span class="stock-val">${p.stock_total}</span> <span class="stock-unit">${p.unite}</span></div>
+      <div class="progress"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+      <div class="stock-status" style="color:${statusColor}">${statusTxt}</div>
+      ${p.dernier_prix ? `<div style="font-size:10px;color:var(--text3);margin-top:4px">Dernier prix : ${p.dernier_prix}€/${p.unite}</div>` : ''}
+      ${rappelDu ? `<div style="font-size:10px;color:var(--orange);margin-top:2px">🔔 Commander — ${jourDepuisAchat}j depuis achat</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+async function loadMouvements() {
+  const el = document.getElementById('stocks-mouvements-list');
+  el.dataset.loaded = '1';
+  const { data } = await sb.from('mouvements_stock').select('*, produits(nom,unite)').order('date_mouvement', {ascending:false}).limit(50);
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucun mouvement</div>'; return; }
+  let html = '<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Produit</th><th>Mouvement</th><th>Quantité</th><th>Prix unit.</th><th>Total</th><th>Notes</th></tr></thead><tbody>';
+  data.forEach(m => {
+    const cls = m.type_mouvement === 'entree' ? 'badge-green' : 'badge-red';
+    const lbl = m.type_mouvement === 'entree' ? 'Entrée' : m.type_mouvement === 'sortie' ? 'Sortie' : 'Inventaire';
+    const total = m.prix_unitaire ? (m.quantite * m.prix_unitaire).toFixed(2) + '€' : '—';
+    html += `<tr><td>${fmt(m.date_mouvement)}</td><td>${m.produits?.nom||'—'}</td><td><span class="badge ${cls}">${lbl}</span></td><td>${m.quantite} ${m.produits?.unite||''}</td><td>${m.prix_unitaire ? m.prix_unitaire+'€' : '—'}</td><td>${total}</td><td style="color:var(--text3);font-size:11px">${m.notes||'—'}</td></tr>`;
+  });
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+async function loadRecoltes() {
+  const el = document.getElementById('stocks-recoltes-list');
+  el.dataset.loaded = '1';
+  const { data } = await sb.from('recoltes').select('*, produits(nom)').order('date_recolte', {ascending:false});
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucune récolte enregistrée</div>'; return; }
+  let html = '<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Parcelle</th><th>Produit</th><th>Quantité</th><th>Qualité</th><th>Coût</th><th>Notes</th></tr></thead><tbody>';
+  data.forEach(r => {
+    const qcls = r.qualite === 'excellente' ? 'badge-green' : r.qualite === 'bonne' ? 'badge-green' : r.qualite === 'mediocre' ? 'badge-red' : 'badge-muted';
+    html += `<tr><td>${fmt(r.date_recolte)}</td><td>${r.parcelle}</td><td>${r.produits?.nom||'—'}</td><td>${r.quantite}</td><td><span class="badge ${qcls}">${r.qualite||'—'}</span></td><td>${r.cout_total ? r.cout_total+'€' : '—'}</td><td style="font-size:11px;color:var(--text3)">${r.notes||'—'}</td></tr>`;
+  });
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+async function loadPrix() {
+  const el = document.getElementById('stocks-prix-list');
+  el.dataset.loaded = '1';
+  const { data } = await sb.from('prix_produits').select('*, produits(nom)').order('date_achat', {ascending:false}).limit(40);
+  if (!data?.length) { el.innerHTML = '<div class="empty">Aucun prix enregistré</div>'; return; }
+  let html = '<div class="card"><div class="table-wrap"><table><thead><tr><th>Date</th><th>Produit</th><th>Prix unitaire</th><th>Fournisseur</th><th>Notes</th></tr></thead><tbody>';
+  data.forEach(p => {
+    html += `<tr><td>${fmt(p.date_achat)}</td><td>${p.produits?.nom||'—'}</td><td style="font-weight:400">${p.prix_unitaire}€</td><td>${p.fournisseur||'—'}</td><td style="font-size:11px;color:var(--text3)">${p.notes||'—'}</td></tr>`;
+  });
+  html += '</tbody></table></div></div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// PÂTURES
+// =============================================
+async function loadPatures() {
+  const el = document.getElementById('patures-list');
+  const { data: patures } = await sb.from('patures').select('*').eq('actif',true);
+  const { data: rotations } = await sb.from('rotations_pature').select('*').order('date_debut', {ascending:false});
+  if (!patures?.length) { el.innerHTML = '<div class="empty">Aucune pâture enregistrée</div>'; return; }
+  let html = '<div class="grid-2">';
+  patures.forEach(p => {
+    const rot = rotations?.find(r => r.pature_id === p.id);
+    const statut = rot?.statut || 'repos';
+    const statutLabels = { en_usage:'En usage', repos:'Repos', fenaison:'Fenaison', entretien:'Entretien' };
+    const statutCls = { en_usage:'badge-orange', repos:'badge-green', fenaison:'badge-muted', entretien:'badge-red' };
+    const jours = rot?.date_debut ? Math.round((Date.now() - new Date(rot.date_debut)) / 86400000) : 0;
+    html += `<div class="card">
+      <div class="card-header">
+        <span class="card-title">${p.nom}</span>
+        <span class="badge ${statutCls[statut]||'badge-muted'}">${statutLabels[statut]||statut}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">${p.superficie_ha ? p.superficie_ha+' ha · ' : ''}${p.description||''}</div>
+      ${rot ? `<div style="font-size:12px;color:var(--text2)">Depuis le ${fmt(rot.date_debut)} · ${jours} jour(s)</div>` : ''}
+      ${rot?.date_fin_prevue ? `<div style="font-size:11px;color:var(--text3)">Fin prévue : ${fmt(rot.date_fin_prevue)}</div>` : ''}
+      ${rot?.notes ? `<div style="font-size:11px;color:var(--text3);margin-top:6px;font-style:italic">${rot.notes}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// PLANNING
+// =============================================
+async function loadPlanning() {
+  const el = document.getElementById('planning-view');
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  const { data } = await sb.from('evenements').select('*')
+    .gte('date_debut', startOfWeek.toISOString())
+    .lte('date_debut', endOfWeek.toISOString())
+    .order('date_debut');
+  const jours = ['LUN','MAR','MER','JEU','VEN','SAM','DIM'];
+  const todayDay = today.getDay() === 0 ? 6 : today.getDay() - 1;
+  let html = '<div class="card"><div class="week-grid">';
+  html += '<div class="wg-header"></div>';
+  jours.forEach((j, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    const isToday = i === todayDay;
+    html += `<div class="wg-header${isToday?' today':''}">${j}<br><span style="font-size:11px">${d.getDate()}</span></div>`;
+  });
+  const hours = ['08h','10h','12h','14h','16h','18h'];
+  hours.forEach(h => {
+    const hNum = parseInt(h);
+    html += `<div class="wg-time">${h}</div>`;
+    jours.forEach((j, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const dayEvents = data?.filter(e => {
+        const ed = new Date(e.date_debut);
+        return ed.toDateString() === d.toDateString() && ed.getHours() >= hNum && ed.getHours() < hNum + 2;
+      }) || [];
+      let slotHtml = '';
+      dayEvents.forEach(e => {
+        const cls = e.type_evenement === 'soin' || e.type_evenement === 'visite_veto' ? 'ev-soin'
+          : e.type_evenement === 'alimentation' ? 'ev-alim'
+          : e.type_evenement === 'cours' ? 'ev-cours' : 'ev-autre';
+        slotHtml += `<div class="wg-event ${cls}">${e.titre}</div>`;
+      });
+      html += `<div class="wg-slot">${slotHtml}</div>`;
+    });
+  });
+  html += '</div>';
+  if (!data?.length) html += '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3);font-style:italic">Aucun événement cette semaine — <span style="cursor:pointer;text-decoration:underline" onclick="openModal(\'add-event\')">en ajouter un</span></div>';
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// CONTRATS
+// =============================================
+async function loadContracts() {
+  const el = document.getElementById('contracts-list');
+  const { data } = await sb.from('contrats').select('*, profils(nom,prenom), chevaux(nom)').eq('statut','actif').order('cree_le', {ascending:false});
+  if (!data?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Aucun contrat actif</div>'; return; }
+  let html = '';
+  data.forEach(c => {
+    const proprio = c.profils ? `${c.profils.prenom||''} ${c.profils.nom}`.trim() : '—';
+    const initiales = proprio.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const expireBientot = c.date_fin && (new Date(c.date_fin) - Date.now()) < 30 * 86400000;
+    html += `<div class="contract-item">
+      <div class="contract-avatar">${initiales}</div>
+      <div class="contract-info">
+        <div class="contract-name">${proprio}</div>
+        <div class="contract-detail">${c.chevaux?.nom||'—'} · ${c.type_pension}</div>
+        <div style="margin-top:6px;display:flex;gap:6px">
+          <span class="badge badge-green">Actif</span>
+          ${expireBientot ? `<span class="badge badge-orange">Expire bientôt</span>` : ''}
+        </div>
+      </div>
+      <div>
+        <div class="contract-amount">${c.montant_mensuel}€<span style="font-size:11px;color:var(--text3)">/mois</span></div>
+        <div class="contract-period">J. prélèvement : ${c.jour_prelevement}</div>
+        ${c.date_fin ? `<div class="contract-period">Fin : ${fmt(c.date_fin)}</div>` : ''}
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+// =============================================
+// FINANCES
+// =============================================
+async function loadFinance() {
+  const el = document.getElementById('finance-view');
+  const { data: bilan } = await sb.from('bilan_mensuel').select('*').limit(12);
+  const { data: transactions } = await sb.from('transactions').select('*').order('date_transaction', {ascending:false}).limit(20);
+  let html = '<div class="stats-row" style="grid-template-columns:repeat(3,1fr)">';
+  const currentMonth = bilan?.[0];
+  html += `<div class="stat-card green"><div class="stat-val">${currentMonth?.total_recettes||0}€</div><div class="stat-lbl">Recettes ce mois</div></div>`;
+  html += `<div class="stat-card red"><div class="stat-val">${currentMonth?.total_depenses||0}€</div><div class="stat-lbl">Dépenses ce mois</div></div>`;
+  html += `<div class="stat-card"><div class="stat-val">${currentMonth?.resultat_net||0}€</div><div class="stat-lbl">Résultat net</div></div>`;
+  html += '</div>';
+  if (transactions?.length) {
+    html += '<div class="card"><div class="card-header"><span class="card-title">Dernières transactions</span></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Montant</th></tr></thead><tbody>';
+    transactions.forEach(t => {
+      const cls = t.type_transaction === 'recette' ? 'badge-green' : 'badge-red';
+      const sign = t.type_transaction === 'recette' ? '+' : '-';
+      const col = t.type_transaction === 'recette' ? 'var(--green)' : 'var(--red)';
+      html += `<tr><td>${fmt(t.date_transaction)}</td><td>${t.libelle}</td><td><span class="badge ${cls}">${t.categorie}</span></td><td style="font-weight:400;color:${col}">${sign}${t.montant}€</td></tr>`;
+    });
+    html += '</tbody></table></div></div>';
+  }
+  el.innerHTML = html;
+}
+
+// =============================================
+// REPRODUCTION
+// =============================================
+async function loadReproduction() {
+  const el = document.getElementById('reproduction-list');
+  const { data } = await sb.from('cycles_reproduction').select('*, chevaux(nom,sexe)').order('cree_le', {ascending:false});
+  if (!data?.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">🌸</div>Aucun cycle enregistré</div>'; return; }
+  let html = '<div class="grid-2">';
+  data.forEach(c => {
+    const statuts = { chaleurs:'En chaleurs', saillie_prevue:'Saillie prévue', saillie_faite:'Saillie faite', gestation:'Gestation', repos:'Repos', vide:'Vide' };
+    const clsMap = { chaleurs:'badge-red', gestation:'badge-green', repos:'badge-muted', saillie_prevue:'badge-orange', saillie_faite:'badge-orange', vide:'badge-muted' };
+    html += `<div class="card">
+      <div class="card-header">
+        <span class="card-title" style="font-style:italic">${c.chevaux?.nom||'—'}</span>
+        <span class="badge ${clsMap[c.statut]||'badge-muted'}">${statuts[c.statut]||c.statut}</span>
+      </div>
+      ${c.date_debut_chaleurs ? `<div style="font-size:12px;margin-bottom:6px">Début chaleurs : <strong>${fmt(c.date_debut_chaleurs)}</strong></div>` : ''}
+      ${c.date_ovulation_prevue ? `<div style="font-size:12px;margin-bottom:6px">Ovulation prévue : <strong>${fmt(c.date_ovulation_prevue)}</strong></div>` : ''}
+      ${c.date_saillie ? `<div style="font-size:12px;margin-bottom:6px">Saillie : <strong>${fmt(c.date_saillie)}</strong>${c.etalon ? ' · '+c.etalon : ''}</div>` : ''}
+      ${c.date_poulinage_prevue ? `<div style="font-size:12px;margin-bottom:6px">Poulinage prévu : <strong>${fmt(c.date_poulinage_prevue)}</strong></div>` : ''}
+      ${c.notes ? `<div style="font-size:11px;color:var(--text3);font-style:italic;margin-top:6px">${c.notes}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// NUTRITION
+// =============================================
+async function loadNutrition() {
+  const el = document.getElementById('nutrition-list');
+  const { data: rations } = await sb.from('rations').select('*, chevaux(nom), produits(nom,unite)').eq('actif',true);
+  const { data: complements } = await sb.from('complements').select('*, chevaux(nom)').eq('actif',true);
+  let html = '<div class="card" style="margin-bottom:16px"><div class="card-header"><span class="card-title">Rations journalières</span></div>';
+  if (!rations?.length) { html += '<div class="empty">Aucune ration configurée</div>'; }
+  else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Cheval</th><th>Aliment</th><th>Quantité/jour</th><th>Unité</th><th>Notes</th></tr></thead><tbody>';
+    rations.forEach(r => {
+      html += `<tr><td><strong>${r.chevaux?.nom||'—'}</strong></td><td>${r.produits?.nom||'—'}</td><td style="font-weight:400">${r.quantite_jour}</td><td>${r.unite}</td><td style="font-size:11px;color:var(--text3)">${r.notes||'—'}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+  html += '<div class="card"><div class="card-header"><span class="card-title">Compléments actifs</span></div>';
+  if (!complements?.length) { html += '<div class="empty">Aucun complément enregistré</div>'; }
+  else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Cheval</th><th>Complément</th><th>Dosage</th><th>Fréquence</th><th>Indication</th></tr></thead><tbody>';
+    complements.forEach(c => {
+      html += `<tr><td><strong>${c.chevaux?.nom||'—'}</strong></td><td>${c.nom}</td><td>${c.dosage||'—'}</td><td>${c.frequence||'—'}</td><td style="font-size:11px;color:var(--text3)">${c.indication||'—'}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// =============================================
+// MODALS — FORMULAIRES
+// =============================================
+const modals = {
+  'quick-add': () => `<div class="modal-title">Ajouter rapidement</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      ${[['add-horse','🐴','Cheval'],['add-soin','💊','Soin / Vaccin'],['add-stock','📦','Mouvement stock'],['add-recolte','🌾','Récolte'],['add-event','📅','Événement'],['add-contract','📋','Contrat'],['add-transaction','💶','Transaction'],['add-cycle','🌸','Cycle repro']].map(([id,ic,lbl])=>`<button class="btn btn-outline" style="padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;font-size:11px;letter-spacing:0.1em" onclick="openModal('${id}')">${ic}<span>${lbl}</span></button>`).join('')}
+    </div>`,
+
+  'add-horse': () => `<div class="modal-title">Nouveau cheval</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="h-nom" placeholder="Nom du cheval"></div>
+      <div class="form-group"><label class="form-label">Race</label><input class="form-input" id="h-race" placeholder="ex: SF, KWPN..."></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Sexe</label><select class="form-select" id="h-sexe"><option value="hongre">Hongre</option><option value="jument">Jument</option><option value="etalon">Étalon</option><option value="poulain">Poulain</option><option value="pouliche">Pouliche</option></select></div>
+      <div class="form-group"><label class="form-label">Date de naissance</label><input class="form-input" id="h-naissance" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Box n°</label><input class="form-input" id="h-box" placeholder="ex: 3"></div>
+      <div class="form-group"><label class="form-label">Type pension</label><select class="form-select" id="h-pension"><option value="complete">Pension complète</option><option value="demi">Demi-pension</option><option value="paddock">Paddock only</option><option value="ecole">École</option><option value="proprio">Propriétaire</option></select></div>
+    </div>
+    <div class="form-group full" style="margin-bottom:14px"><label class="form-label">Notes</label><textarea class="form-textarea" id="h-notes" placeholder="Particularités, antécédents..."></textarea></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveHorse()">Enregistrer</button></div>`,
+
+  'add-soin': () => `<div class="modal-title">Ajouter un soin</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="s-type"><option value="vaccin">Vaccin</option><option value="vermifuge">Vermifuge</option><option value="visite_veto">Visite véto</option><option value="ferrage">Ferrure</option><option value="dentiste">Dentiste</option><option value="soin_quotidien">Soin quotidien</option><option value="autre">Autre</option></select></div>
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="s-date" type="date" value="${today()}"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Titre / Acte</label><input class="form-input" id="s-titre" placeholder="ex: Grippe / Tétanos"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Prochain rappel</label><input class="form-input" id="s-rappel" type="date"></div>
+      <div class="form-group"><label class="form-label">Coût (€)</label><input class="form-input" id="s-cout" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Praticien</label><input class="form-input" id="s-praticien" placeholder="Nom du vétérinaire..."></div>
+      <div class="form-group"><label class="form-label">Produit utilisé</label><input class="form-input" id="s-produit" placeholder="ex: Equilis Resequin"></div>
+    </div>
+    <div id="cheval-select-container"></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveSoin()">Enregistrer</button></div>`,
+
+  'add-stock': () => `<div class="modal-title">Mouvement de stock</div>
+    <div id="produit-select-container"><div class="loading"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Mouvement</label><select class="form-select" id="ms-type"><option value="entree">Entrée (achat)</option><option value="sortie">Sortie (consommation)</option><option value="inventaire">Inventaire</option></select></div>
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="ms-date" type="date" value="${today()}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantité</label><input class="form-input" id="ms-qte" type="number" placeholder="0" step="0.1"></div>
+      <div class="form-group"><label class="form-label">Prix unitaire (€) <span style="font-size:9px;color:var(--green)">↻ auto</span></label><input class="form-input" id="ms-prix" type="number" placeholder="Dernier prix connu" step="0.01"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Fournisseur</label><input class="form-input" id="ms-fourn" placeholder="Nom du fournisseur"></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><input class="form-input" id="ms-notes" placeholder="Notes..."></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveStock()">Enregistrer</button></div>`,
+
+  'add-recolte': () => `<div class="modal-title">Enregistrer une récolte</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Parcelle</label><input class="form-input" id="r-parcelle" placeholder="ex: Pâture Sud"></div>
+      <div class="form-group"><label class="form-label">Date récolte</label><input class="form-input" id="r-date" type="date" value="${today()}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Quantité (bottes)</label><input class="form-input" id="r-qte" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Qualité</label><select class="form-select" id="r-qualite"><option value="excellente">Excellente</option><option value="bonne">Bonne</option><option value="correcte">Correcte</option><option value="mediocre">Médiocre</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Superficie (ha)</label><input class="form-input" id="r-ha" type="number" step="0.1" placeholder="0.0"></div>
+      <div class="form-group"><label class="form-label">Coût total (€)</label><input class="form-input" id="r-cout" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Météo / Conditions</label><input class="form-input" id="r-meteo" placeholder="Beau temps, sec..."></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><textarea class="form-textarea" id="r-notes" placeholder="Observations..."></textarea></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveRecolte()">Enregistrer</button></div>`,
+
+  'add-event': () => `<div class="modal-title">Ajouter un événement</div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Titre</label><input class="form-input" id="ev-titre" placeholder="Nom de l'événement"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="ev-type"><option value="alimentation">Alimentation</option><option value="cours">Cours équitation</option><option value="sortie_pature">Sortie pâture</option><option value="soin">Soin</option><option value="visite_veto">Visite véto</option><option value="entretien">Entretien</option><option value="absence_proprio">Absence propriétaire</option><option value="autre">Autre</option></select></div>
+      <div class="form-group"><label class="form-label">Date & heure</label><input class="form-input" id="ev-debut" type="datetime-local"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fin (optionnel)</label><input class="form-input" id="ev-fin" type="datetime-local"></div>
+      <div class="form-group"><label class="form-label">Visible propriétaire</label><select class="form-select" id="ev-visible"><option value="true">Oui</option><option value="false">Non</option></select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><textarea class="form-textarea" id="ev-notes" placeholder="Détails..."></textarea></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveEvent()">Ajouter</button></div>`,
+
+  'add-contract': () => `<div class="modal-title">Nouveau contrat de pension</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nom propriétaire</label><input class="form-input" id="ct-nom" placeholder="Nom complet"></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="ct-email" type="email" placeholder="email@exemple.fr"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Type de pension</label><select class="form-select" id="ct-type"><option>Pension complète</option><option>Demi-pension</option><option>Paddock only</option><option>Box + pré</option></select></div>
+      <div class="form-group"><label class="form-label">Montant mensuel (€)</label><input class="form-input" id="ct-montant" type="number" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Début contrat</label><input class="form-input" id="ct-debut" type="date" value="${today()}"></div>
+      <div class="form-group"><label class="form-label">Fin contrat</label><input class="form-input" id="ct-fin" type="date"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Services inclus</label><textarea class="form-textarea" id="ct-services" placeholder="Détaillez les prestations..."></textarea></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveContract()">Créer contrat</button></div>`,
+
+  'add-transaction': () => `<div class="modal-title">Nouvelle transaction</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="tr-type"><option value="recette">Recette</option><option value="depense">Dépense</option></select></div>
+      <div class="form-group"><label class="form-label">Catégorie</label><select class="form-select" id="tr-cat"><option value="pension">Pension</option><option value="cours">Cours</option><option value="alimentation">Alimentation</option><option value="sante">Santé</option><option value="entretien">Entretien</option><option value="materiel">Matériel</option><option value="assurance">Assurance</option><option value="recolte">Récolte</option><option value="autre">Autre</option></select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Libellé</label><input class="form-input" id="tr-libelle" placeholder="Description de la transaction"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Montant (€)</label><input class="form-input" id="tr-montant" type="number" placeholder="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="tr-date" type="date" value="${today()}"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><input class="form-input" id="tr-notes" placeholder="Notes..."></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveTransaction()">Enregistrer</button></div>`,
+
+  'add-cycle': () => `<div class="modal-title">Enregistrer un cycle</div>
+    <div id="jument-select-container"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Statut</label><select class="form-select" id="cy-statut"><option value="chaleurs">En chaleurs</option><option value="saillie_prevue">Saillie prévue</option><option value="saillie_faite">Saillie effectuée</option><option value="gestation">Gestation confirmée</option><option value="repos">Repos</option></select></div>
+      <div class="form-group"><label class="form-label">Début chaleurs</label><input class="form-input" id="cy-debut" type="date"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Date saillie</label><input class="form-input" id="cy-saillie" type="date"></div>
+      <div class="form-group"><label class="form-label">Étalon</label><input class="form-input" id="cy-etalon" placeholder="Nom de l'étalon"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><textarea class="form-textarea" id="cy-notes" placeholder="Observations, résultats écho..."></textarea></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveCycle()">Enregistrer</button></div>`,
+
+  'add-ration': () => `<div class="modal-title">Configurer une ration</div>
+    <div id="ration-cheval-container"></div>
+    <div id="ration-produit-container" style="margin-top:14px"></div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="form-group"><label class="form-label">Quantité / jour</label><input class="form-input" id="ra-qte" type="number" step="0.1" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Unité</label><select class="form-select" id="ra-unite"><option value="kg">kg</option><option value="botte">botte</option><option value="litre">litre</option><option value="unite">unité</option></select></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><input class="form-input" id="ra-notes" placeholder="Notes..."></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveRation()">Enregistrer</button></div>`,
+
+  'add-rotation': () => `<div class="modal-title">Nouvelle rotation pâture</div>
+    <div id="pature-select-container"></div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="form-group"><label class="form-label">Statut</label><select class="form-select" id="ro-statut"><option value="en_usage">En usage</option><option value="repos">Repos</option><option value="fenaison">Fenaison</option><option value="entretien">Entretien</option></select></div>
+      <div class="form-group"><label class="form-label">Date début</label><input class="form-input" id="ro-debut" type="date" value="${today()}"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Fin prévue</label><input class="form-input" id="ro-fin" type="date"></div>
+    <div class="form-group" style="margin-bottom:14px"><label class="form-label">Notes</label><input class="form-input" id="ro-notes" placeholder="Notes..."></div>
+    <div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Annuler</button><button class="btn btn-dark" onclick="saveRotation()">Valider</button></div>`,
+};
+
+function openModal(id) {
+  const fn = modals[id];
+  if (!fn) return;
+  document.getElementById('modal-body').innerHTML = fn();
+  document.getElementById('modal-overlay').classList.add('open');
+  // Charger les selects dynamiques
+  if (id === 'add-stock') loadProduitSelect('produit-select-container', 'ms-produit', true);
+  if (id === 'add-soin') loadChevalSelect('cheval-select-container', 'soin-cheval');
+  if (id === 'add-cycle') loadChevalSelect('jument-select-container', 'cy-cheval', 'jument');
+  if (id === 'add-ration') { loadChevalSelect('ration-cheval-container', 'ra-cheval'); loadProduitSelect('ration-produit-container', 'ra-produit'); }
+  if (id === 'add-rotation') loadPatureSelect('pature-select-container', 'ro-pature');
+}
+
+async function loadProduitSelect(containerId, selectId, withPrix = false) {
+  const { data } = await sb.from('produits').select('*, prix_produits(prix_unitaire, date_achat)').eq('actif',true).order('nom');
+  const container = document.getElementById(containerId);
+  if (!container || !data) return;
+  let html = `<div class="form-group" style="margin-bottom:14px"><label class="form-label">Produit</label><select class="form-select" id="${selectId}" onchange="fillLastPrice(this)">`;
+  data.forEach(p => {
+    const lastPrix = p.prix_produits?.sort((a,b) => new Date(b.date_achat)-new Date(a.date_achat))[0]?.prix_unitaire || '';
+    html += `<option value="${p.id}" data-prix="${lastPrix}" data-unite="${p.unite}">${p.nom} (${p.unite})</option>`;
+  });
+  html += '</select></div>';
+  container.innerHTML = html;
+  if (withPrix) setTimeout(() => { const sel = document.getElementById(selectId); if (sel) fillLastPrice(sel); }, 50);
+}
+
+function fillLastPrice(sel) {
+  const prix = sel.options[sel.selectedIndex]?.dataset.prix;
+  const prixEl = document.getElementById('ms-prix');
+  if (prixEl && prix) { prixEl.value = prix; prixEl.style.borderColor = 'var(--green)'; }
+}
+
+async function loadChevalSelect(containerId, selectId, sexeFilter = null) {
+  let query = sb.from('chevaux').select('*').eq('actif',true).order('nom');
+  if (sexeFilter) query = query.eq('sexe', sexeFilter);
+  const { data } = await query;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let html = `<div class="form-group" style="margin-bottom:14px"><label class="form-label">Cheval</label><select class="form-select" id="${selectId}">`;
+  data?.forEach(h => { html += `<option value="${h.id}">${h.nom}</option>`; });
+  html += '</select></div>';
+  container.innerHTML = html;
+}
+
+async function loadPatureSelect(containerId, selectId) {
+  const { data } = await sb.from('patures').select('*').eq('actif',true).order('nom');
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let html = `<div class="form-group"><label class="form-label">Pâture</label><select class="form-select" id="${selectId}">`;
+  data?.forEach(p => { html += `<option value="${p.id}">${p.nom} (${p.superficie_ha||'?'} ha)</option>`; });
+  html += '</select></div>';
+  container.innerHTML = html;
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+// =============================================
+// SAVE FUNCTIONS
+// =============================================
+async function saveHorse() {
+  const { error } = await sb.from('chevaux').insert({
+    nom: v('h-nom'), race: v('h-race'), sexe: v('h-sexe'),
+    date_naissance: v('h-naissance') || null,
+    box_numero: v('h-box'), type_pension: v('h-pension'), notes: v('h-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadHorses(); showToast('Cheval ajouté ✓');
+}
+
+async function saveSoin() {
+  const chevalId = v('soin-cheval');
+  const { error } = await sb.from('soins').insert({
+    cheval_id: chevalId, type_soin: v('s-type'), titre: v('s-titre'),
+    date_soin: v('s-date'), prochain_rappel: v('s-rappel') || null,
+    cout: parseFloat(v('s-cout')) || 0, praticien: v('s-praticien'), produit_utilise: v('s-produit')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadHealth(); loadDashAlertes(); showToast('Soin enregistré ✓');
+}
+
+async function saveStock() {
+  const produitId = v('ms-produit');
+  const prix = parseFloat(v('ms-prix')) || null;
+  const { error } = await sb.from('mouvements_stock').insert({
+    produit_id: produitId, type_mouvement: v('ms-type'),
+    quantite: parseFloat(v('ms-qte')), prix_unitaire: prix,
+    fournisseur: v('ms-fourn'), date_mouvement: v('ms-date'), notes: v('ms-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  // Sauvegarder le nouveau prix si c'est une entrée
+  if (v('ms-type') === 'entree' && prix && produitId) {
+    await sb.from('prix_produits').insert({ produit_id: produitId, prix_unitaire: prix, fournisseur: v('ms-fourn'), date_achat: v('ms-date') });
+  }
+  closeModal(); loadStocks(); loadDashMouvements(); showToast('Mouvement enregistré ✓');
+}
+
+async function saveRecolte() {
+  const { data: foin } = await sb.from('produits').select('id').eq('nom', 'Foin de prairie').single();
+  const { error } = await sb.from('recoltes').insert({
+    produit_id: foin?.id || null, parcelle: v('r-parcelle'),
+    superficie_ha: parseFloat(v('r-ha')) || null, date_recolte: v('r-date'),
+    quantite: parseFloat(v('r-qte')), qualite: v('r-qualite'),
+    cout_total: parseFloat(v('r-cout')) || 0, conditions_meteo: v('r-meteo'), notes: v('r-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  // Ajouter automatiquement au stock
+  if (foin) await sb.from('mouvements_stock').insert({ produit_id: foin.id, type_mouvement: 'entree', quantite: parseFloat(v('r-qte')), date_mouvement: v('r-date'), notes: 'Récolte ' + v('r-parcelle') });
+  closeModal(); showToast('Récolte enregistrée ✓ (stock mis à jour)');
+}
+
+async function saveEvent() {
+  const { error } = await sb.from('evenements').insert({
+    titre: v('ev-titre'), type_evenement: v('ev-type'),
+    date_debut: v('ev-debut'), date_fin: v('ev-fin') || null,
+    visible_proprietaire: v('ev-visible') === 'true',
+    notes: v('ev-notes'), createur_id: currentUser?.id
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadPlanning(); showToast('Événement ajouté ✓');
+}
+
+async function saveContract() {
+  const { error } = await sb.from('contrats').insert({
+    type_pension: v('ct-type'), montant_mensuel: parseFloat(v('ct-montant')),
+    date_debut: v('ct-debut'), date_fin: v('ct-fin') || null,
+    services_inclus: v('ct-services'), statut: 'actif'
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadContracts(); showToast('Contrat créé ✓');
+}
+
+async function saveTransaction() {
+  const { error } = await sb.from('transactions').insert({
+    type_transaction: v('tr-type'), categorie: v('tr-cat'),
+    libelle: v('tr-libelle'), montant: parseFloat(v('tr-montant')),
+    date_transaction: v('tr-date'), notes: v('tr-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadFinance(); showToast('Transaction enregistrée ✓');
+}
+
+async function saveCycle() {
+  const chevalId = v('cy-cheval');
+  const dateSaillie = v('cy-saillie');
+  let poulinage = null;
+  if (dateSaillie) { const d = new Date(dateSaillie); d.setDate(d.getDate() + 340); poulinage = d.toISOString().split('T')[0]; }
+  const { error } = await sb.from('cycles_reproduction').insert({
+    cheval_id: chevalId, statut: v('cy-statut'),
+    date_debut_chaleurs: v('cy-debut') || null, date_saillie: dateSaillie || null,
+    etalon: v('cy-etalon'), date_poulinage_prevue: poulinage, notes: v('cy-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadReproduction(); showToast('Cycle enregistré ✓');
+}
+
+async function saveRation() {
+  const { error } = await sb.from('rations').insert({
+    cheval_id: v('ra-cheval'), produit_id: v('ra-produit'),
+    quantite_jour: parseFloat(v('ra-qte')), unite: v('ra-unite'), notes: v('ra-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadNutrition(); showToast('Ration configurée ✓');
+}
+
+async function saveRotation() {
+  const { error } = await sb.from('rotations_pature').insert({
+    pature_id: v('ro-pature'), statut: v('ro-statut'),
+    date_debut: v('ro-debut'), date_fin_prevue: v('ro-fin') || null, notes: v('ro-notes')
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+  closeModal(); loadPatures(); showToast('Rotation enregistrée ✓');
+}
+
+// =============================================
+// UTILITIES
+// =============================================
+function v(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmt(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--surface);padding:12px 20px;border-radius:4px;font-size:12px;font-weight:400;letter-spacing:0.1em;z-index:999;animation:fadeIn 0.2s ease;box-shadow:0 4px 20px rgba(42,32,24,0.2)';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+</body>
+</html>
